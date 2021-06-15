@@ -12,7 +12,7 @@ access = access_key
 secret = secret_key
 
 # slack token
-myToken = "xoxb-1612682196912-2173287453763-g8opmbQbfzXGM4wzn0U4c0o5"
+myToken = "xoxb-1612682196912-2173287453763-qNeEtYCKMGbL1n5djwmQzKDn"
 
 
 def get_ror(k=0.5):
