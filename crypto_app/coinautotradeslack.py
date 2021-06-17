@@ -5,13 +5,14 @@ import requests
 import numpy as np
 
 
-
+access_key = "key"
+secret_key = "key"
 
 access = access_key
 secret = secret_key
 
 # slack token
-myToken = token_key
+myToken = "key"
 
 
 def get_ror(k=0.5):
@@ -22,17 +23,18 @@ def get_ror(k=0.5):
     df['ror'] = np.where(df['high'] > df['target'], df['close'] / df['target'], 1)
 
     ror = df['ror'].cumprod()[-2]
-    return ror,k
+    
+    return ror
 
 def best_kvalue():
     tmp_ror = 0
     tmp_k   = 0
     for k in np.arange(0.1, 1.0, 0.01):
-        ror,k = get_ror(k)
+        ror = get_ror(k)
         if(tmp_ror < ror):
             tmp_ror = ror
             tmp_k   = k
-    return tmp_ror,tmp_k
+    return tmp_k
 
 
 def post_message(token, channel, text):
@@ -80,7 +82,7 @@ print("autotrade start")
 # 시작 메세지 슬랙 전송
 post_message(myToken,"#crypto", "autotrade start")
 
-ror,kvalue = best_kvalue()
+kvalue = best_kvalue()
 tmp_target_price = 0
 while True:
     try:
@@ -106,7 +108,7 @@ while True:
             if btc > 0.00008:
                 sell_result = upbit.sell_market_order("KRW-BTC", btc*0.9995)
                 post_message(myToken,"#crypto", "BTC buy : " +str(sell_result))
-            ror,kvalue = best_kvalue()
+            kvalue = best_kvalue()
         time.sleep(1)
     except Exception as e:
         print(e)
