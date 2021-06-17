@@ -5,14 +5,13 @@ import requests
 import numpy as np
 
 
-access_key = "xSMh5esbX9w3Tf8t2hBDAAMLbYvc6jTMU4j6hk0y"
-secret_key = "XQXSeRwou8l4xqHqBq1nnG5o779Bw78mTkugsKYH"
+
 
 access = access_key
 secret = secret_key
 
 # slack token
-myToken = "xoxb-1612682196912-2173287453763-qNeEtYCKMGbL1n5djwmQzKDn"
+myToken = token_key
 
 
 def get_ror(k=0.5):
@@ -23,15 +22,17 @@ def get_ror(k=0.5):
     df['ror'] = np.where(df['high'] > df['target'], df['close'] / df['target'], 1)
 
     ror = df['ror'].cumprod()[-2]
-    return ror
+    return ror,k
 
 def best_kvalue():
     tmp_ror = 0
-    for k in np.arange(0.1, 1.0, 0.1):
-        ror = get_ror(k)
+    tmp_k   = 0
+    for k in np.arange(0.1, 1.0, 0.01):
+        ror,k = get_ror(k)
         if(tmp_ror < ror):
             tmp_ror = ror
-    return tmp_ror;
+            tmp_k   = k
+    return tmp_ror,tmp_k
 
 
 def post_message(token, channel, text):
@@ -79,7 +80,8 @@ print("autotrade start")
 # 시작 메세지 슬랙 전송
 post_message(myToken,"#crypto", "autotrade start")
 
-kvalue = best_kvalue()
+ror,kvalue = best_kvalue()
+tmp_target_price = 0
 while True:
     try:
         now = datetime.datetime.now()
@@ -88,6 +90,10 @@ while True:
 
         if start_time < now < end_time - datetime.timedelta(seconds=10):
             target_price = get_target_price("KRW-BTC", kvalue)
+            if target_price != tmp_target_price:
+                tmp_target_price = target_price
+                post_message(myToken,"#crypto", "Today Kvalue : " +str(kvalue))
+                post_message(myToken,"#crypto", "new T.P : " +str(tmp_target_price))
             ma5 = get_ma5("KRW-BTC")
             current_price = get_current_price("KRW-BTC")
             if target_price < current_price and ma5 < current_price:
@@ -100,7 +106,7 @@ while True:
             if btc > 0.00008:
                 sell_result = upbit.sell_market_order("KRW-BTC", btc*0.9995)
                 post_message(myToken,"#crypto", "BTC buy : " +str(sell_result))
-            kvalue = best_kvalue()
+            ror,kvalue = best_kvalue()
         time.sleep(1)
     except Exception as e:
         print(e)
