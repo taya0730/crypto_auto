@@ -21,15 +21,21 @@ def get_ror(k=0.5):
     df['target'] = df['open'] + df['range'].shift(1)
 
     df['ror'] = np.where(df['high'] > df['target'], df['close'] / df['target'], 1)
-
     ror = df['ror'].cumprod()[-2]
     
     return ror
 
 def best_kvalue():
+    # 0.1~0.99 list 생성
+    K_list = []
+    list_val = 0.1
+    while(list_val < 1):
+        K_list.append(round(list_val,2))
+        list_val += 0.01
+
     tmp_ror = 0
     tmp_k   = 0
-    for k in np.arange(0.1, 1.0, 0.01):
+    for k in K_list:
         ror = get_ror(k)
         if(tmp_ror < ror):
             tmp_ror = ror
